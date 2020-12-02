@@ -44,7 +44,7 @@ func (db *FSHKDB) defaultPopulation() {
 		dbType.ID = uint(index + 1)
 		dbType.Activated = str == DATABASE_DEVICE_CONNECTION_WIFI
 
-		db.innerDB.Save(&dbType)
+		db.innerDB.Create(&dbType)
 	}
 }
 
