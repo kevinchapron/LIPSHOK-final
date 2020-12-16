@@ -15,10 +15,9 @@ How it works
 The framework is in the `main-app` folder, to manage the main server and its interaction. 
 
 Once started, it will create its own database file using sqlite, with the name `FSHK.db`, wherever the program is started.
-The program will put default values in it, but you can override them when it is shut down. On the restart of the program, it will take into account every data in it.
-
-For example, using the table `database_device_types`, you can specify which protocol you want activated on the start of the service. If one of your device runs on this protocol, but you deactivated it, it won't be able to connect.
-See independant categories for more explanation about each protocol management.
+You can choose two ways of starting protocols services : 
+ * Either enable the protocols using the JSON file called "protocols.json" next to the app (it must follow the template as given in `/main-app/protocols.json`). This way, the `main-app` will start its own services.
+ * Or you can start your own services, on the device you want, using the different services provided in `test/received-*.go`. Be sure to forward data to the right IP/port if you move it.
 
 Messaging
 ---------

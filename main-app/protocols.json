@@ -1,0 +1,16 @@
+{
+  "protocols": [
+    {
+      "name": "UDP",
+      "activated": true
+    },
+    {
+      "name": "TCP",
+      "activated": true
+    },
+    {
+      "name": "BLE",
+      "activated": true
+    }
+  ]
+}

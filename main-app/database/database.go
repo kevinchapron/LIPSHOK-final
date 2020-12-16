@@ -34,18 +34,7 @@ func (db *FSHKDB) checkIfExists() {
 }
 
 func (db *FSHKDB) defaultPopulation() {
-	s := []string{
-		DATABASE_DEVICE_CONNECTION_WIFI,
-		DATABASE_DEVICE_CONNECTION_BLUETOOTH,
-		DATABASE_DEVICE_CONNECTION_BLE}
-
-	for index, str := range s {
-		dbType := DatabaseDeviceType{Name: str}
-		dbType.ID = uint(index + 1)
-		dbType.Activated = str == DATABASE_DEVICE_CONNECTION_WIFI
-
-		db.innerDB.Create(&dbType)
-	}
+	// populate
 }
 
 func (db *FSHKDB) Connect() {
@@ -67,10 +56,4 @@ func (db *FSHKDB) Connect() {
 	if !db.existingDB {
 		db.defaultPopulation()
 	}
-}
-
-func (db *FSHKDB) GetDeviceTypes() []DatabaseDeviceType {
-	var r []DatabaseDeviceType
-	db.innerDB.Find(&r)
-	return r
 }

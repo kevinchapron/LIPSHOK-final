@@ -2,23 +2,12 @@ package database
 
 import "gorm.io/gorm"
 
-const DATABASE_DEVICE_CONNECTION_WIFI = "Wi-Fi"
-const DATABASE_DEVICE_CONNECTION_BLUETOOTH = "Bluetooth"
-const DATABASE_DEVICE_CONNECTION_BLE = "BLE"
-
-type DatabaseDeviceType struct {
-	gorm.Model
-	Name      string
-	Activated bool
-}
-
 type DatabaseDevice struct {
 	gorm.Model
 	PhysicalAddr string
 	Name         string
 
-	ConnectionType   DatabaseDeviceType
-	ConnectionTypeID uint
+	ConnectionType string
 }
 
 type DatabaseDeviceCalibrationStep struct {
@@ -33,7 +22,6 @@ type DatabaseDeviceCalibrationStep struct {
 
 func migrations() []interface{} {
 	return []interface{}{
-		&DatabaseDeviceType{},
 		&DatabaseDeviceCalibrationStep{},
 		&DatabaseDevice{},
 	}

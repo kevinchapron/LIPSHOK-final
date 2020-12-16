@@ -16,23 +16,11 @@ func main() {
 	db := database.GetDatabase()
 	db.Connect()
 
-	deviceTypes := db.GetDeviceTypes()
-
 	Logging.Debug("The database is connected.")
 
 	var done = make(chan bool)
 	muxRouter := mux.NewRouter()
-
-	for _, deviceType := range deviceTypes {
-		if deviceType.Name == database.DATABASE_DEVICE_CONNECTION_WIFI && deviceType.Activated {
-			// Wi-Fi activated; we link the websockets.
-			websockets.CreateWebSocket(constants.SENSOR_WEBSOCKET_NAME, "/sensors", muxRouter)
-			continue
-		}
-
-		continue
-	}
-
+	websockets.CreateWebSocket(constants.SENSOR_WEBSOCKET_NAME, "/sensors", muxRouter)
 	go http.ListenAndServe(fmt.Sprintf("%s:%d", constants.ROUTER_ADDRESS, constants.SENSOR_WEBSOCKET_PORT), muxRouter)
 	Logging.Info(fmt.Sprintf("[WS] > WebSockets application listening on ws://%s:%d/", constants.ROUTER_ADDRESS, constants.SENSOR_WEBSOCKET_PORT))
 
@@ -42,6 +30,9 @@ func main() {
 	go http.ListenAndServe(fmt.Sprintf("%s:%d", constants.ROUTER_ADDRESS, constants.INTERFACE_PORT), routerInterface)
 
 	Logging.Info("Program launched.")
+
+	// reading the protocols to know if it musts start its own
+
 	<-done
 	Logging.Info("Program terminated.")
 }
