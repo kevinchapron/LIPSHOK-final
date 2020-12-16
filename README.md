@@ -50,31 +50,34 @@ Protocols
 ---------
 
 <details>
-<summary><b>UDP</b></summary>
+<summary><b>WebSocket</b></summary>
 
+<p>
+Main-App is managing WebSockets from scratch on port <b>5001</b>. 
+It's on this websocket that every protocol is forwarded.
+</p>
+</details>
+
+<details>
+<summary><b>UDP</b></summary>
 <p>
 This software allows UDP packets to be received on the port <b>5010</b>
 Then, it forwards it to the main app, to register everything.
 
-
 If something is received, the service will acknowledge it using a return message <b>{"data":"OK"}</b> everytime. 
 If you do not receive it, your message has not been received.
 </p>
-    
 </details>
 
 <details>
 <summary><b>TCP</b></summary>
-
 <p>
 This software allows TCP packets to be received on the port <b>5020</b>
 Then, it forwards it to the main app, to register everything.
 
-
 If something is received, the service will acknowledge it using a return message <b>{"data":"OK"}</b> everytime. 
 If you do not receive it, your message has not been received.
 </p>
-    
 </details>
 
 
