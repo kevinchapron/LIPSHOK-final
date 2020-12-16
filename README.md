@@ -5,6 +5,8 @@
 
 ![Logo Golang](https://github.com/golang/go/blob/master/doc/gopher/doc.png)
 
+This thesis has been developed using GoLang.
+
 ---
 
 How it works
@@ -43,6 +45,12 @@ A new IV is generated every time for every message, while the MasterKey is hard-
 The second system is the algorithm PRESENT<a href="#note1" id="note1ref"><sup>1</sup></a>, which is an ultra lightweight algorithm, created to be run on low computational units. 
 In some of our cases, such as BLE communications, remote devices have not the memory not the power to compute AES-128 fast enough. 
 In those cases, as the data have very strict limitations, it is an ideal pick.
+
+Web Interface
+-------------
+
+A web interface is available once the program is started, on the port 5002. It will interact with the server using a specific websocket designed to this effect. 
+
 
 Authors
 ---

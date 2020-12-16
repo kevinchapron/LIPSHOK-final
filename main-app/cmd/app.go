@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/kevinchapron/BasicLogger/Logging"
-	"github.com/kevinchapron/FSHK-final/main-app/constants"
+	"github.com/kevinchapron/FSHK-final/constants"
 	"github.com/kevinchapron/FSHK-final/main-app/database"
 	"github.com/kevinchapron/FSHK-final/main-app/websockets"
 	"net/http"
@@ -26,15 +26,20 @@ func main() {
 	for _, deviceType := range deviceTypes {
 		if deviceType.Name == database.DATABASE_DEVICE_CONNECTION_WIFI && deviceType.Activated {
 			// Wi-Fi activated; we link the websockets.
-			websockets.CreateWebSocket(constants.WEBSOCKET_NAME, "/sensors", muxRouter)
+			websockets.CreateWebSocket(constants.SENSOR_WEBSOCKET_NAME, "/sensors", muxRouter)
 			continue
 		}
 
 		continue
 	}
 
-	go http.ListenAndServe(fmt.Sprintf("%s:%d", constants.ROUTER_ADDRESS, constants.ROUTER_PORT), muxRouter)
-	Logging.Info(fmt.Sprintf("[WS] > WebSocket application listening on ws://%s:%d/", constants.ROUTER_ADDRESS, constants.ROUTER_PORT))
+	go http.ListenAndServe(fmt.Sprintf("%s:%d", constants.ROUTER_ADDRESS, constants.SENSOR_WEBSOCKET_PORT), muxRouter)
+	Logging.Info(fmt.Sprintf("[WS] > WebSockets application listening on ws://%s:%d/", constants.ROUTER_ADDRESS, constants.SENSOR_WEBSOCKET_PORT))
+
+	routerInterface := mux.NewRouter()
+	// Add of the graphic interface-dev
+	routerInterface.PathPrefix("/").Handler(http.FileServer(http.Dir("../interface-build/")))
+	go http.ListenAndServe(fmt.Sprintf("%s:%d", constants.ROUTER_ADDRESS, constants.INTERFACE_PORT), routerInterface)
 
 	Logging.Info("Program launched.")
 	<-done

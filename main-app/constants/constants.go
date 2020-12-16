@@ -1,8 +1,0 @@
-package constants
-
-const (
-	ROUTER_ADDRESS = "127.0.0.1"
-	ROUTER_PORT    = 5001
-
-	WEBSOCKET_NAME = "SENSORS_SETTINGS"
-)
