@@ -18,6 +18,12 @@ const (
 )
 
 const (
+	TCP_ADDR            = "127.0.0.1"
+	TCP_PORT            = 5020
+	MAX_TCP_PACKET_SIZE = 1000
+)
+
+const (
 	MESSAGING_DATATYPE_AUTH = 0x01
 	MESSAGING_DATATYPE_DATA = 0x00
 )

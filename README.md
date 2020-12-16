@@ -52,14 +52,28 @@ Protocols
 <details>
 <summary><b>UDP</b></summary>
 
-```
-This software allows UDP packets to be received on the port <b>5010</b>. 
+<p>
+This software allows UDP packets to be received on the port <b>5010</b>
 Then, it forwards it to the main app, to register everything.
 
 
-If something is received, the service will acknowledge it using a return message {"data":"OK"} everytime. 
+If something is received, the service will acknowledge it using a return message <b>{"data":"OK"}</b> everytime. 
 If you do not receive it, your message has not been received.
-```
+</p>
+    
+</details>
+
+<details>
+<summary><b>TCP</b></summary>
+
+<p>
+This software allows TCP packets to be received on the port <b>5020</b>
+Then, it forwards it to the main app, to register everything.
+
+
+If something is received, the service will acknowledge it using a return message <b>{"data":"OK"}</b> everytime. 
+If you do not receive it, your message has not been received.
+</p>
     
 </details>
 
