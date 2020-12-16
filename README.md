@@ -46,6 +46,21 @@ The second system is the algorithm PRESENT<a href="#note1" id="note1ref"><sup>1<
 In some of our cases, such as BLE communications, remote devices have not the memory not the power to compute AES-128 fast enough. 
 In those cases, as the data have very strict limitations, it is an ideal pick.
 
+Protocols
+---------
+
+<details>
+<summary><b>UDP</b></summary>
+<p>
+    This software allows UDP packets to be received on the port <b>5010</b>. 
+    Then, it forwards it to the main app, to register everything.<br /><br />
+    If something is received, the service will acknowledge it using a return message "{"data":"OK"}" everytime. If you do not receive it, your message has not been received.
+    
+</p>
+</details>
+
+
+
 Web Interface
 -------------
 
