@@ -27,3 +27,5 @@ const (
 	MESSAGING_DATATYPE_AUTH = 0x01
 	MESSAGING_DATATYPE_DATA = 0x00
 )
+
+const PROTOCOLS_JSON_CONF = "protocols.json"

@@ -1,13 +1,17 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/kevinchapron/BasicLogger/Logging"
 	"github.com/kevinchapron/FSHK-final/constants"
 	"github.com/kevinchapron/FSHK-final/main-app/database"
 	"github.com/kevinchapron/FSHK-final/main-app/websockets"
+	"github.com/kevinchapron/FSHK-final/receivers"
+	"io/ioutil"
 	"net/http"
+	"os"
 )
 
 func main() {
@@ -31,8 +35,42 @@ func main() {
 
 	Logging.Info("Program launched.")
 
-	// reading the protocols to know if it musts start its own
+	go startProtocols()
 
 	<-done
 	Logging.Info("Program terminated.")
+}
+
+func startProtocols() {
+
+	// reading the protocols to know if it musts start its own
+	var protocols database.Protocols
+	jsonFile, err := os.Open(constants.PROTOCOLS_JSON_CONF)
+	if err != nil && !os.IsNotExist(err) {
+		Logging.Error(err)
+		return
+	}
+	if os.IsNotExist(err) {
+		Logging.Warning(fmt.Sprintf("Trying to read \"%s\", but no file found.", constants.PROTOCOLS_JSON_CONF))
+		return
+	}
+
+	defer jsonFile.Close()
+	bytes, _ := ioutil.ReadAll(jsonFile)
+	err = json.Unmarshal(bytes, &protocols)
+	if err != nil {
+		Logging.Error(err)
+		return
+	}
+
+	for _, protocol := range protocols.List {
+		if protocol.Activated {
+			f, ok := receivers.ProtocolFunctions[protocol.Name]
+			if !ok {
+				Logging.Warning(fmt.Sprintf("NO FUNCTION FOR PROTOCOL : ---%s---", protocol.Name))
+				continue
+			}
+			go f(fmt.Sprintf("[%s]", protocol.Name))
+		}
+	}
 }

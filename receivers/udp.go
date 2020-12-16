@@ -31,7 +31,7 @@ func CreateUDPReceiver(logPrefix string) {
 		Logging.Error(logPrefix, err)
 		return
 	}
-	Logging.Info(logPrefix, "Waiting for UDP sensor connections ...")
+	Logging.Info(logPrefix, fmt.Sprintf("Waiting for UDP sensor connections on port %d...", constants.UDP_PORT))
 
 	var p = make([]byte, constants.MAX_UDP_PACKET_SIZE)
 	for {

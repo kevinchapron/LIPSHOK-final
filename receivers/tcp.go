@@ -35,7 +35,7 @@ func CreateTCPReceiver(logPrefix string) {
 	}
 
 	defer listener.Close()
-	Logging.Info(logPrefix, "Waiting for TCP sensor connections ...")
+	Logging.Info(logPrefix, fmt.Sprintf("Waiting for TCP sensor connections on port %d...", constants.TCP_PORT))
 
 	for {
 		c, err := listener.Accept()
