@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bufio"
+	"encoding/json"
 	"fmt"
 	"github.com/kevinchapron/BasicLogger/Logging"
 	"github.com/kevinchapron/FSHK-final/constants"
+	"github.com/kevinchapron/FSHK-final/messaging"
 	"github.com/kevinchapron/FSHK-final/test/sensor-simulation"
 	"net"
 )
@@ -26,6 +29,7 @@ func main() {
 		return
 	}
 
+	p := make([]byte, constants.MAX_UDP_PACKET_SIZE)
 	// send depending to the conn.
 	n, err := conn.Write(data)
 	if err != nil {
@@ -33,6 +37,16 @@ func main() {
 		return
 	}
 	Logging.Info("Sent data : ", n)
+	_, err = bufio.NewReader(conn).Read(p)
+	if err != nil {
+		Logging.Error(err)
+		return
+	}
+	var m messaging.Message
+	m.FromBytes(p)
+
+	var answer messaging.AnswerMessage
+	json.Unmarshal(m.Data, &answer)
 
 	select {}
 }

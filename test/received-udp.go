@@ -1,13 +1,17 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/kevinchapron/BasicLogger/Logging"
 	"github.com/kevinchapron/FSHK-final/constants"
 	"github.com/kevinchapron/FSHK-final/internal-connectors"
 	"github.com/kevinchapron/FSHK-final/messaging"
+	"github.com/kevinchapron/FSHK-final/security"
 	"net"
 )
+
+var messagesInternal = make(chan messaging.Message)
 
 func main() {
 	Logging.SetLevel(Logging.DEBUG)
@@ -15,7 +19,7 @@ func main() {
 
 	// created internal connection with main app.
 	internConnector := internal_connectors.CreateInternalConnector()
-	go internConnector.Connect()
+	go internConnector.Connect(&messagesInternal)
 	if a := <-internConnector.IsConnected; !a {
 		Logging.Error("Problem while trying to connect.")
 		return
@@ -52,6 +56,23 @@ func receivedMessage(conn *net.UDPConn, addr *net.UDPAddr, data []byte) {
 		return
 	}
 	Logging.Info(fmt.Sprintf("Received Message from %s : %s", addr.String(), m.Data))
+	// forward message to main app
+	// change AES IV
+	m.AesIV = security.RandomKey()
+	messagesInternal <- m
 
-	//conn.WriteToUDP(m.ToBytes(),addr)
+	answered := messaging.AnswerMessage{Data: "OK"}
+	m.Data, err = json.Marshal(answered)
+	if err != nil {
+		Logging.Error(err)
+		return
+	}
+
+	m.AesIV = security.RandomKey()
+	m.DataType = constants.MESSAGING_DATATYPE_DATA
+	_, err = conn.WriteToUDP(m.ToBytes(), addr)
+	if err != nil {
+		Logging.Error(err)
+		return
+	}
 }

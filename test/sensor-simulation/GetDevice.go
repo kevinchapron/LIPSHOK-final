@@ -2,6 +2,7 @@ package sensor_simulation
 
 import (
 	"encoding/json"
+	"github.com/kevinchapron/FSHK-final/constants"
 	"github.com/kevinchapron/FSHK-final/messaging"
 	"github.com/kevinchapron/FSHK-final/security"
 )
@@ -18,14 +19,14 @@ func GetDevice() *Device {
 	}
 }
 
-func objectToBytes(a interface{}, dataType uint) ([]byte, error) {
+func objectToBytes(a interface{}, dataType byte) ([]byte, error) {
 	data, err := json.Marshal(a)
 	if err != nil {
 		return nil, err
 	}
 
 	var m = messaging.Message{
-		DataType: 0x01,
+		DataType: dataType,
 		AesIV:    security.RandomKey(),
 	}
 	m.Data = data
@@ -33,5 +34,9 @@ func objectToBytes(a interface{}, dataType uint) ([]byte, error) {
 }
 
 func ObjectToBytesAuth(a interface{}) ([]byte, error) {
-	return objectToBytes(a, 0x01)
+	return objectToBytes(a, constants.MESSAGING_DATATYPE_AUTH)
+}
+
+func ObjectToBytesData(a interface{}) ([]byte, error) {
+	return objectToBytes(a, constants.MESSAGING_DATATYPE_DATA)
 }
