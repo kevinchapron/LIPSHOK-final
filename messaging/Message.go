@@ -21,7 +21,9 @@ func (m *Message) FromBytes(s []byte) error {
 		m.AesIV[i] = v
 	}
 	m.DataType = s[14]
-	encryptedData := s[24:]
+
+	lengthData := binary.LittleEndian.Uint16(s[:2])
+	encryptedData := s[24 : lengthData+24]
 	msg, err := security.Decrypt(encryptedData, m.AesIV[:])
 	if err != nil {
 		return err
