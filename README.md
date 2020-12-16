@@ -51,12 +51,16 @@ Protocols
 
 <details>
 <summary><b>UDP</b></summary>
-<p>
-    This software allows UDP packets to be received on the port <b>5010</b>. 
-    Then, it forwards it to the main app, to register everything.<br /><br />
-    If something is received, the service will acknowledge it using a return message "{"data":"OK"}" everytime. If you do not receive it, your message has not been received.
+
+```
+This software allows UDP packets to be received on the port <b>5010</b>. 
+Then, it forwards it to the main app, to register everything.
+
+
+If something is received, the service will acknowledge it using a return message {"data":"OK"} everytime. 
+If you do not receive it, your message has not been received.
+```
     
-</p>
 </details>
 
 
