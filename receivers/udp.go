@@ -13,7 +13,7 @@ import (
 
 func CreateUDPReceiver(logPrefix string) {
 	// created internal connection with main app.
-	internConnector := internal_connectors.CreateInternalConnector()
+	internConnector := internal_connectors.CreateInternalConnector("UDP Manager", "UDP")
 	go internConnector.Connect(&UDPmessagesInternal)
 	if a := <-internConnector.IsConnected; !a {
 		Logging.Error(logPrefix, "Problem while trying to connect.")

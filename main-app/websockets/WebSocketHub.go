@@ -2,6 +2,7 @@ package websockets
 
 import (
 	"github.com/kevinchapron/BasicLogger/Logging"
+	"github.com/kevinchapron/FSHK-final/constants"
 	"github.com/kevinchapron/FSHK-final/messaging"
 )
 
@@ -16,6 +17,7 @@ type WebSocketHub struct {
 	Receiver chan WebSocketMessage
 
 	IndexKey string
+	Raw      bool
 }
 
 func (h *WebSocketHub) run() {
@@ -33,14 +35,28 @@ func (h *WebSocketHub) run() {
 				msg.To.sending <- msg
 			}
 		case msg := <-h.Receiver:
+
 			var m messaging.Message
-			err := m.FromBytes(msg.Data)
-			if err != nil {
-				Logging.Error("Message received from", msg.From.conn.RemoteAddr().String(), "; err : ", err)
-				continue
+			switch h.Raw {
+			case false:
+				err := m.FromBytes(msg.Data)
+				if err != nil {
+					Logging.Error("Message received from", msg.From.conn.RemoteAddr().String(), "; err : ", err)
+					continue
+				}
+			case true:
+				m.Data = msg.Data
 			}
 			WebSocketFunction[h.IndexKey](m, msg.From, h)
 
 		}
 	}
+}
+
+func ListAllConnectors() []*WebSocketClient {
+	var m []*WebSocketClient
+	for c, _ := range hubs[constants.SENSOR_WEBSOCKET_NAME].clients {
+		m = append(m, c)
+	}
+	return m
 }

@@ -1,16 +1,13 @@
 <template>
   <div id="app">
-    <TopHeader></TopHeader>
-    
+    <router-view></router-view>
   </div>
 </template>
 
 <script>
-  import TopHeader from './components/TopHeader'
-export default {
-  name: 'App',
-  components:{TopHeader}
-}
+  export default {
+    name: 'App',
+  }
 </script>
 
 <style lang="less">
@@ -21,7 +18,7 @@ export default {
     padding:0;
     font-family: 'Roboto',sans-serif;
   }
-  html, body {
+  html, body, #app {
     width:100%;
     height:100%;
   }

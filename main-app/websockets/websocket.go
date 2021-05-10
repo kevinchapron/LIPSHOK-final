@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func CreateWebSocket(name string, uri string, r *mux.Router) {
+func createWebSocket(name string, uri string, r *mux.Router, rawData bool) {
 
 	ws_wrapper := WebSocketWrapper{}
 	hub, ok := hubs[name]
@@ -19,6 +19,7 @@ func CreateWebSocket(name string, uri string, r *mux.Router) {
 			Receiver: make(chan WebSocketMessage),
 
 			IndexKey: name,
+			Raw:      rawData,
 		}
 		hub = hubs[name]
 	}
@@ -29,4 +30,12 @@ func CreateWebSocket(name string, uri string, r *mux.Router) {
 		CreateClientConnection(ws_wrapper.Hub, writer, request)
 	})
 
+}
+
+func CreateWebSocket(name string, uri string, r *mux.Router) {
+	createWebSocket(name, uri, r, false)
+}
+
+func CreateRawWebSocket(name string, uri string, r *mux.Router) {
+	createWebSocket(name, uri, r, true)
 }

@@ -15,7 +15,7 @@ import (
 func CreateTCPReceiver(logPrefix string) {
 
 	// created internal connection with main app.
-	internConnector := internal_connectors.CreateInternalConnector()
+	internConnector := internal_connectors.CreateInternalConnector("TCP Manager", "TCP")
 	go internConnector.Connect(&TCPmessagesInternal)
 	if a := <-internConnector.IsConnected; !a {
 		Logging.Error(logPrefix, "Problem while trying to connect.")

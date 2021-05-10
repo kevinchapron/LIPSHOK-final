@@ -16,7 +16,10 @@ type WebSocketClient struct {
 	conn   *websocket.Conn
 	device *database.DatabaseDevice
 
-	sending chan WebSocketMessage
+	sending         chan WebSocketMessage
+	lastMessageTime time.Time
+	Name            string
+	Protocol        string
 }
 
 func (c *WebSocketClient) read() {
@@ -32,6 +35,7 @@ func (c *WebSocketClient) read() {
 			Logging.Info("[WS] > Client ", c.conn.RemoteAddr().String(), "disconnected.")
 			break
 		}
+		c.lastMessageTime = time.Now()
 
 		var m WebSocketMessage
 		m.Data = msg

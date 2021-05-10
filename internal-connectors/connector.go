@@ -1,24 +1,29 @@
 package internal_connectors
 
 import (
+	"encoding/json"
 	"github.com/gorilla/websocket"
 	"github.com/kevinchapron/BasicLogger/Logging"
 	"github.com/kevinchapron/FSHK-final/constants"
 	"github.com/kevinchapron/FSHK-final/messaging"
+	"github.com/kevinchapron/FSHK-final/security"
 	"net/url"
 	"strconv"
 )
 
 type internalConnector struct {
-	wsConnection *websocket.Conn
-	terminate    chan struct{}
-	IsConnected  chan bool
+	wsConnection *websocket.Conn `json:"-"`
+	terminate    chan struct{}   `json:"-"`
+	IsConnected  chan bool       `json:"-"`
 
-	messages *chan messaging.Message
+	Name     string
+	Protocol string
+
+	messages *chan messaging.Message `json:"-"`
 }
 
-func CreateInternalConnector() *internalConnector {
-	return &internalConnector{terminate: make(chan struct{}), IsConnected: make(chan bool)}
+func CreateInternalConnector(name string, protocol string) *internalConnector {
+	return &internalConnector{terminate: make(chan struct{}), IsConnected: make(chan bool), Name: name, Protocol: protocol}
 }
 
 func (conn *internalConnector) Connect(list *chan messaging.Message) {
@@ -37,10 +42,19 @@ func (conn *internalConnector) Connect(list *chan messaging.Message) {
 
 func (conn *internalConnector) internalConnection() {
 	// Action with websocket
+	var authMsg messaging.Message
+
+	authMsg.AesIV = security.RandomKey()
+	authMsg.DataType = constants.MESSAGING_DATATYPE_AUTH
+	v, _ := json.Marshal(*conn)
+	authMsg.Data = v
+
+	conn.wsConnection.WriteMessage(websocket.BinaryMessage, authMsg.ToBytes())
+
 	defer conn.wsConnection.Close()
 	// listen for messages to send
 
-	go conn.continuouslyReadMessages()
+	//go conn.continuouslyReadMessages()
 	for {
 		select {
 		case <-conn.terminate:
@@ -56,14 +70,15 @@ func (conn *internalConnector) internalConnection() {
 	}
 }
 
-func (conn *internalConnector) continuouslyReadMessages() {
-	defer close(conn.terminate)
-	for {
-		_, message, err := conn.wsConnection.ReadMessage()
-		if err != nil {
-			Logging.Error(err)
-			return
-		}
-		Logging.Debug("Received Message : ", string(message))
-	}
-}
+//
+//func (conn *internalConnector) continuouslyReadMessages() {
+//	defer close(conn.terminate)
+//	for {
+//		_, message, err := conn.wsConnection.ReadMessage()
+//		if err != nil {
+//			Logging.Error(err)
+//			return
+//		}
+//		Logging.Debug("Received Message : ", string(message))
+//	}
+//}

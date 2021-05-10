@@ -23,6 +23,7 @@ func main() {
 
 	// Default comportement
 	device := sensor_simulation.GetDevice()
+
 	data, err := sensor_simulation.ObjectToBytesAuth(device)
 	if err != nil {
 		Logging.Error(err)
