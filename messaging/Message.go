@@ -3,7 +3,7 @@ package messaging
 import (
 	"encoding/binary"
 	"errors"
-	"github.com/kevinchapron/FSHK-final/security"
+	"github.com/kevinchapron/LIPSHOK/security"
 )
 
 type Message struct {

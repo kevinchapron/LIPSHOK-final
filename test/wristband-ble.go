@@ -3,14 +3,16 @@ package main
 import (
 	"encoding/binary"
 	"encoding/json"
+	"flag"
 	"github.com/gorilla/websocket"
 	"github.com/kevinchapron/BasicLogger/Logging"
-	"github.com/kevinchapron/FSHK-final/constants"
-	"github.com/kevinchapron/FSHK-final/messaging"
-	"github.com/kevinchapron/FSHK-final/security"
+	"github.com/kevinchapron/LIPSHOK/constants"
+	"github.com/kevinchapron/LIPSHOK/messaging"
+	"github.com/kevinchapron/LIPSHOK/security"
 	"gobot.io/x/gobot/platforms/ble"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -23,7 +25,7 @@ const DEVICE_WRISTBAND_DEBUGGING_CHARACTERISTIC = "e1ab4d54-b549-11e9-a2a3-2a2ae
 const DEVICE_WRISTBAND_CLASSIFICATIONS_OF_THE_DAY_CHARACTERISTIC = "261f6059-ace7-497c-b7b0-6b3d80efe6bf"
 const DEVICE_WRISTBAND_ENCRYPTION_KEY_SETUP = "244cc952-c29a-4bb6-84cc-1d35d05fcd89"
 
-const TIMESTAMP_STOPPER = time.Second * 5
+const TIMESTAMP_STOPPER = time.Second * 30
 
 func ExtractFloatValuesFromBLE(b []byte) (float64, float64, float64, float64, float64, float64) {
 	ax := (float64(binary.LittleEndian.Uint16(b[0:2])) / 1000) - 4
@@ -36,23 +38,30 @@ func ExtractFloatValuesFromBLE(b []byte) (float64, float64, float64, float64, fl
 	return ax, ay, az, gx, gy, gz
 }
 
-type InertialData struct {
-	AX float64
-	AY float64
-	AZ float64
-
-	GX float64
-	GY float64
-	GZ float64
-}
+const _defaultBLEAddr = "EF:3A:4E:89:07:0D"
+const _defaultIPAddr = "192.168.0.1"
+const _defaultIPPort = constants.WEBSOCKET_INNER_BLE_PORT
+const _defaultPath = constants.WEBSOCKET_INNER_BLE_PATH
 
 func main() {
 	Logging.SetLevel(Logging.DEBUG)
 	lastTimestamp := time.Now()
+	addr := flag.String("addr", _defaultBLEAddr, "Addr of wristband")
+	ipAddr := flag.String("ip", _defaultIPAddr, "IP of the websocket")
+	wsPort := flag.String("port", strconv.Itoa(_defaultIPPort), "Port of the websocket")
+	wsPath := flag.String("path", _defaultPath, "Path in the websocket")
+
+	flag.Parse()
+	Logging.Info("Launching wristbandBLE with following parameters : ")
+	_m := map[bool]string{true: "(default)", false: ""}
+	Logging.Info(" -addr=\"" + (*addr) + "\" " + _m[*addr == _defaultBLEAddr])
+	Logging.Info(" -ip=\"" + (*ipAddr) + "\" " + _m[*ipAddr == _defaultIPAddr])
+	Logging.Info(" -port=\"" + (*wsPort) + "\" " + _m[*wsPort == strconv.Itoa(_defaultIPPort)])
+	Logging.Info(" -path=\"" + (*wsPath) + "\" " + _m[*wsPath == _defaultPath])
+	Logging.Info()
 
 	// Connecting to WS
-	ipLIPSHOK := "192.168.5.226"
-	u := url.URL{Scheme: "ws", Host: ipLIPSHOK + ":" + strconv.Itoa(constants.WEBSOCKET_INNER_BLE_PORT), Path: constants.WEBSOCKET_INNER_BLE_PATH}
+	u := url.URL{Scheme: "ws", Host: (*ipAddr) + ":" + *wsPort, Path: *wsPath}
 	Logging.Debug("Trying to connect to inner WS : " + u.String())
 	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
@@ -62,81 +71,115 @@ func main() {
 	defer conn.Close()
 	Logging.Debug("Connected to INNER WEBSOCKET")
 
-	addr := "EF:3A:4E:89:07:0D"
-	adaptor := ble.NewClientAdaptor(addr)
+	var breaker = make(chan int)
 	for {
-		err := adaptor.Connect()
-		if err != nil {
-			Logging.Error(err)
-			return
-		}
-		Logging.Debug("Connected to wristband")
+		var quitted = make(chan int)
+		go func() {
+			adaptor := ble.NewClientAdaptor(*addr)
+			defer func() {
+				if adaptor != nil {
+					adaptor.Disconnect()
+				}
+				quitted <- 0
+			}()
+			err := adaptor.Connect()
+			if err != nil {
+				Logging.Error(err)
+				return
+			}
+			Logging.Debug("Connected to wristband")
 
-		/*
-				=====================================
-			=============================================
-			============ WRITE CHARACTERISTICS ==========
-			=============================================
-				=====================================
-		*/
-		Logging.Debug("Sending Encryption.")
-		bleEncryptor := security.GetBLEEncryptionSystem(addr)
+			/*
+					=====================================
+				=============================================
+				============ WRITE CHARACTERISTICS ==========
+				=============================================
+					=====================================
+			*/
+			Logging.Debug("Sending Encryption.")
+			bleEncryptor := security.GetBLEEncryptionSystem(*addr)
 
-		adaptor.WithoutResponses(false)
-		err = adaptor.WriteCharacteristic(DEVICE_WRISTBAND_ENCRYPTION_KEY_SETUP, bleEncryptor.GenerateMasterKey())
-		if err != nil {
-			Logging.Error(err)
-			return
-		}
-		Logging.Debug("Encryption set.")
+			adaptor.WithoutResponses(false)
+			err = adaptor.WriteCharacteristic(DEVICE_WRISTBAND_ENCRYPTION_KEY_SETUP, bleEncryptor.GenerateMasterKey())
+			if err != nil {
+				Logging.Error(err)
+				return
+			}
+			Logging.Debug("Encryption set.")
 
-		// Suscribe RAW DATA from IMU
-		err = adaptor.Subscribe(DEVICE_WRISTBAND_IMU_RAW_DATA_CHARACTERISTIC, func(data []byte, err error) {
-			//Logging.Debug("New Value coming from characteristics.")
+			/*
+					=====================================
+				=============================================
+				========== SUSCRIBE CHARACTERISTICS =========
+				=============================================
+					=====================================
+			*/
+
+			Logging.Debug("Suscribing to IMU raw data")
+			// Suscribe RAW DATA from IMU
+			err = adaptor.Subscribe(DEVICE_WRISTBAND_IMU_RAW_DATA_CHARACTERISTIC, func(data []byte, err error) {
+				defer func() {
+					lastTimestamp = time.Now()
+				}()
+				//Logging.Debug("New Value coming from characteristics.")
+				if err != nil {
+					Logging.Error(err)
+					return
+				}
+
+				decrypted_value, err := bleEncryptor.Decrypt(data)
+				if err != nil {
+					Logging.Error(err)
+					return
+				}
+
+				jsonString := BytesU8ToJSON("imu_raw_data", decrypted_value)
+				var m map[string]interface{}
+				json.Unmarshal([]byte(jsonString), &m)
+
+				ax, ay, az, gx, gy, gz := ExtractFloatValuesFromBLE(decrypted_value)
+				inertialData := messaging.InertialData{
+					AX: ax, AY: ay, AZ: az,
+					GX: gx, GY: gy, GZ: gz,
+				}
+
+				if inertialData.HasWeirdData() {
+					return
+				}
+				inertialData.RoundUpData()
+
+				msg := messaging.Message{}
+				msg.DataType = constants.MESSAGING_DATATYPE_DATA
+				msg.AesIV = security.RandomKey()
+				msg.Data, _ = json.Marshal(inertialData)
+
+				err = conn.WriteMessage(websocket.BinaryMessage, msg.ToBytes())
+				if err != nil {
+					if strings.Contains(err.Error(), "reset by peer") {
+						breaker <- 0
+					}
+					return
+				}
+			})
 			if err != nil {
 				Logging.Error(err)
 				return
 			}
 
-			decrypted_value, err := bleEncryptor.Decrypt(data)
-			if err != nil {
-				Logging.Error(err)
-				return
+			Logging.Debug("All setup. Loop started.")
+			for {
+				time.Sleep(time.Millisecond * 500)
+				if time.Since(lastTimestamp) > TIMESTAMP_STOPPER {
+					return
+				}
 			}
-
-			jsonString := BytesU8ToJSON("imu_raw_data", decrypted_value)
-			var m map[string]interface{}
-			json.Unmarshal([]byte(jsonString), &m)
-
-			ax, ay, az, gx, gy, gz := ExtractFloatValuesFromBLE(decrypted_value)
-			inertialData := InertialData{
-				AX: ax, AY: ay, AZ: az,
-				GX: gx, GY: gy, GZ: gz,
-			}
-
-			msg := messaging.Message{}
-			msg.DataType = constants.MESSAGING_DATATYPE_DATA
-			msg.AesIV = security.RandomKey()
-			msg.Data, _ = json.Marshal(inertialData)
-
-			err = conn.WriteMessage(websocket.BinaryMessage, msg.ToBytes())
-			if err != nil {
-				Logging.Error(err)
-				return
-			}
-
-		})
-		if err != nil {
-			Logging.Error(err)
-			return
-		}
-
-		for {
-			if time.Since(lastTimestamp) > TIMESTAMP_STOPPER {
-				Logging.Debug("Disconnected. Will try to reconnect.")
-				break
-			}
-			time.Sleep(time.Second)
+		}()
+		select {
+		case <-quitted:
+			Logging.Debug("Disconnected. Will try to reconnect.")
+		case <-breaker:
+			//Logging.Debug("No connection with the breaker. Panicing.")
+			panic("No connection with the breaker.")
 		}
 	}
 

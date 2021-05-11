@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"github.com/gorilla/websocket"
 	"github.com/kevinchapron/BasicLogger/Logging"
-	"github.com/kevinchapron/FSHK-final/constants"
-	"github.com/kevinchapron/FSHK-final/messaging"
-	"github.com/kevinchapron/FSHK-final/security"
+	"github.com/kevinchapron/LIPSHOK/constants"
+	"github.com/kevinchapron/LIPSHOK/messaging"
+	"github.com/kevinchapron/LIPSHOK/security"
 	"net/url"
 	"strconv"
 )

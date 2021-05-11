@@ -1,7 +1,7 @@
 package receivers
 
 import (
-	"github.com/kevinchapron/FSHK-final/messaging"
+	"github.com/kevinchapron/LIPSHOK/messaging"
 )
 
 var UDPmessagesInternal = make(chan messaging.Message)

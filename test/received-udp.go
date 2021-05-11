@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/kevinchapron/BasicLogger/Logging"
-	"github.com/kevinchapron/FSHK-final/receivers"
+	"github.com/kevinchapron/LIPSHOK/receivers"
 )
 
 func main() {

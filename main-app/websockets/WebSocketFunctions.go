@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/kevinchapron/BasicLogger/Logging"
-	"github.com/kevinchapron/FSHK-final/constants"
-	"github.com/kevinchapron/FSHK-final/messaging"
+	"github.com/kevinchapron/LIPSHOK/constants"
+	"github.com/kevinchapron/LIPSHOK/messaging"
 )
 
 func RegisterNewFunction(name string, f func(message messaging.Message, client *WebSocketClient, hub *WebSocketHub)) error {
@@ -13,7 +13,6 @@ func RegisterNewFunction(name string, f func(message messaging.Message, client *
 		return errors.New("Already a function is registered for this name.")
 	}
 	WebSocketFunction[name] = f
-	Logging.Debug(WebSocketFunction)
 	return nil
 }
 
@@ -33,15 +32,22 @@ func SensorData(msg messaging.Message, client *WebSocketClient, hub *WebSocketHu
 
 		return
 	}
-	Logging.Debug("Received: ", msg, "; From:", client.conn.RemoteAddr().String())
-	Logging.Debug("--->", string(msg.Data))
+
+	BroadcastToOutput(WebSocketMessage{
+		Data: msg.Data,
+		From: client,
+		To:   nil,
+		Type: 0,
+	})
+	//Logging.Debug("Received: ", msg, "; From:", client.conn.RemoteAddr().String())
+	//Logging.Debug("--->", string(msg.Data))
 
 }
 
 func OutputData(msg messaging.Message, client *WebSocketClient, hub *WebSocketHub) {
-
-	Logging.Debug("Received: ", msg, "; From:", client.conn.RemoteAddr().String())
-	Logging.Debug("--->", string(msg.Data))
+	//
+	//Logging.Debug("Received: ", msg, "; From:", client.conn.RemoteAddr().String())
+	//Logging.Debug("--->", string(msg.Data))
 
 	if string(msg.Data) == "status" {
 		// Client want global status.
@@ -66,4 +72,14 @@ func OutputData(msg messaging.Message, client *WebSocketClient, hub *WebSocketHu
 		return
 	}
 
+}
+
+func BroadcastToOutput(msg WebSocketMessage) {
+	for client, b := range hubs[constants.OUTPUT_WEBSOCKET_NAME].clients {
+		if !b {
+			continue
+		}
+
+		client.sending <- msg
+	}
 }

@@ -1,14 +1,13 @@
 package receivers
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/kevinchapron/BasicLogger/Logging"
-	"github.com/kevinchapron/FSHK-final/constants"
-	"github.com/kevinchapron/FSHK-final/internal-connectors"
-	"github.com/kevinchapron/FSHK-final/main-app/websockets"
-	"github.com/kevinchapron/FSHK-final/messaging"
+	"github.com/kevinchapron/LIPSHOK/constants"
+	"github.com/kevinchapron/LIPSHOK/internal-connectors"
+	"github.com/kevinchapron/LIPSHOK/main-app/websockets"
+	"github.com/kevinchapron/LIPSHOK/messaging"
 	"net/http"
 )
 
@@ -36,7 +35,11 @@ func CreateBLEReceiver(logPrefix string) {
 }
 
 func receivedBLEMessages(message messaging.Message, client *websockets.WebSocketClient, hub *websockets.WebSocketHub) {
-	var data map[string]interface{}
-	json.Unmarshal(message.Data, &data)
-	Logging.Debug(data)
+	//var data messaging.InertialData
+	//json.Unmarshal(message.Data, &data)
+
+	websockets.BroadcastToOutput(websockets.WebSocketMessage{
+		Data: message.Data,
+		From: client,
+	})
 }

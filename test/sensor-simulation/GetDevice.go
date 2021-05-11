@@ -2,9 +2,9 @@ package sensor_simulation
 
 import (
 	"encoding/json"
-	"github.com/kevinchapron/FSHK-final/constants"
-	"github.com/kevinchapron/FSHK-final/messaging"
-	"github.com/kevinchapron/FSHK-final/security"
+	"github.com/kevinchapron/LIPSHOK/constants"
+	"github.com/kevinchapron/LIPSHOK/messaging"
+	"github.com/kevinchapron/LIPSHOK/security"
 )
 
 func GetDevice() *Device {

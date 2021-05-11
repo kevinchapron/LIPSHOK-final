@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/kevinchapron/BasicLogger/Logging"
 	"github.com/kevinchapron/FSHK"
-	"github.com/kevinchapron/FSHK-final/main-app/database"
+	"github.com/kevinchapron/LIPSHOK/main-app/database"
 	"net/http"
 	"time"
 )
