@@ -27,7 +27,8 @@ func createWebSocket(name string, uri string, r *mux.Router, rawData bool) {
 	go ws_wrapper.Hub.run()
 
 	r.HandleFunc(uri, func(writer http.ResponseWriter, request *http.Request) {
-		CreateClientConnection(ws_wrapper.Hub, writer, request)
+		query := request.URL.Query()
+		CreateClientConnection(ws_wrapper.Hub, writer, request, query.Get("Name"), query.Get("Protocol"))
 	})
 
 }

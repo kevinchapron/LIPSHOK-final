@@ -8,6 +8,6 @@ type CalibrationStep struct {
 
 type Device struct {
 	Name             string
-	ConnectionType   string
+	Protocol         string
 	CalibrationSteps []CalibrationStep
 }

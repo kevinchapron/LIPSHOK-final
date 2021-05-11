@@ -61,7 +61,7 @@ func main() {
 	Logging.Info()
 
 	// Connecting to WS
-	u := url.URL{Scheme: "ws", Host: (*ipAddr) + ":" + *wsPort, Path: *wsPath}
+	u := url.URL{Scheme: "ws", Host: (*ipAddr) + ":" + *wsPort, Path: *wsPath, RawQuery: "Name=Wristband&Protocol=BLE"}
 	Logging.Debug("Trying to connect to inner WS : " + u.String())
 	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {

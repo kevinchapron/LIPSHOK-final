@@ -22,7 +22,7 @@ func main() {
 
 	// Default comportement
 	device := sensor_simulation.GetDevice()
-	device.ConnectionType = "TCP"
+	device.Protocol = "TCP"
 	data, err := sensor_simulation.ObjectToBytesAuth(device)
 	if err != nil {
 		Logging.Error(err)

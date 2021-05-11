@@ -9,8 +9,8 @@ import (
 
 func GetDevice() *Device {
 	return &Device{
-		Name:           "TestingSensor",
-		ConnectionType: "UDP",
+		Name:     "TestingSensor",
+		Protocol: "UDP",
 		CalibrationSteps: []CalibrationStep{
 			{Description: "Itération 1", Value: -1, Completed: false},
 			{Description: "Itération 2", Value: -1, Completed: false},

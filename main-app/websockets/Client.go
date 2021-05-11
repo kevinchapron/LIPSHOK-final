@@ -78,13 +78,15 @@ func (c *WebSocketClient) write() {
 	}
 }
 
-func CreateClientConnection(hub *WebSocketHub, w http.ResponseWriter, r *http.Request) {
+func CreateClientConnection(hub *WebSocketHub, w http.ResponseWriter, r *http.Request, name string, protocol string) {
 	conn, err := Upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		Logging.Error(err)
 		return
 	}
 	c := &WebSocketClient{hub: hub, conn: conn, sending: make(chan WebSocketMessage)}
+	c.Name = name
+	c.Protocol = protocol
 	c.hub.connecting <- c
 
 	go c.read()
