@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
 )
 
 func main() {
@@ -45,6 +46,8 @@ func main() {
 
 	go startProtocols()
 
+	time.Sleep(time.Second * 5)
+	websockets.PrintConnectorsList(websockets.ListAllConnectors())
 	<-done
 	Logging.Info("Program terminated.")
 }
@@ -78,11 +81,6 @@ func startProtocols() {
 				Logging.Warning(fmt.Sprintf("NO FUNCTION FOR PROTOCOL : ---%s---", protocol.Name))
 				continue
 			}
-			// BLE can only be run on Linux.
-			//if protocol.Name == "BLE" && runtime.GOOS == "windows"{
-			//	Logging.Warning("BLE activated, but Windows cannot manage it for the moment.")
-			//	continue
-			//}
 			go f(fmt.Sprintf("[%s]", protocol.Name))
 		}
 	}

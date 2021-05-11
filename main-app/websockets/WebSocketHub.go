@@ -47,6 +47,7 @@ func (h *WebSocketHub) run() {
 			case true:
 				m.Data = msg.Data
 			}
+
 			WebSocketFunction[h.IndexKey](m, msg.From, h)
 
 		}
@@ -59,4 +60,10 @@ func ListAllConnectors() []*WebSocketClient {
 		m = append(m, c)
 	}
 	return m
+}
+func PrintConnectorsList(connectors []*WebSocketClient) {
+	Logging.Info("5 seconds passed. The following connectors are activated :")
+	for _, connector := range connectors {
+		Logging.Info("  - " + connector.Name + " (" + connector.Protocol + ")")
+	}
 }
