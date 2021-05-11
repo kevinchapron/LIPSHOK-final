@@ -63,11 +63,11 @@ func main() {
 
 func askAndAnswer(conn net.Conn, p []byte) (*messaging.AnswerMessage, error) {
 	// send depending to the conn.
-	n, err := conn.Write(p)
+	_, err := conn.Write(p)
 	if err != nil {
 		return nil, err
 	}
-	Logging.Info("Sent data : ", n)
+
 	_, err = bufio.NewReader(conn).Read(p)
 	if err != nil {
 		return nil, err
