@@ -6,6 +6,7 @@ import (
 	"github.com/kevinchapron/BasicLogger/Logging"
 	"github.com/kevinchapron/LIPSHOK/constants"
 	"github.com/kevinchapron/LIPSHOK/messaging"
+	"time"
 )
 
 func RegisterNewFunction(name string, f func(message messaging.Message, client *WebSocketClient, hub *WebSocketHub)) error {
@@ -79,7 +80,7 @@ func BroadcastToOutput(msg WebSocketMessage) {
 		if !b {
 			continue
 		}
-
+		msg.Datetime = time.Now()
 		client.sending <- msg
 	}
 }
