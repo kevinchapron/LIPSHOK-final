@@ -11,6 +11,23 @@ import (
 	"strconv"
 )
 
+var listSensor = make(map[string]deviceStruct)
+
+type deviceStruct struct {
+	Name     string
+	Protocol string
+}
+
+func (d *deviceStruct) String() string {
+	return "\"" + d.Name + " (" + d.Protocol + ")\""
+}
+func GetSensorDetails(ip string) *deviceStruct {
+	if data, exists := listSensor[ip]; exists {
+		return &data
+	}
+	return nil
+}
+
 type internalConnector struct {
 	wsConnection *websocket.Conn `json:"-"`
 	terminate    chan struct{}   `json:"-"`
@@ -60,6 +77,22 @@ func (conn *internalConnector) internalConnection() {
 		case <-conn.terminate:
 			return
 		case msg := <-*conn.messages:
+			// verifier provenance messages
+			if msg.DataType == constants.MESSAGING_DATATYPE_AUTH {
+				var tmp deviceStruct
+				json.Unmarshal(msg.Data, &tmp)
+
+				listSensor[msg.From] = tmp
+			}
+
+			sensor, exists := listSensor[msg.From]
+			if !exists {
+				Logging.Warning("Received:", msg, ". Yet, nothing registered. Ignoring.")
+				continue
+			}
+
+			msg.From = sensor.Name + "-" + sensor.Protocol
+
 			err := conn.wsConnection.WriteMessage(websocket.BinaryMessage, msg.ToBytes())
 			if err != nil {
 				Logging.Error(err)

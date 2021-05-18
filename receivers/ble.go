@@ -38,6 +38,8 @@ func receivedBLEMessages(message messaging.Message, client *websockets.WebSocket
 	//var data messaging.InertialData
 	//json.Unmarshal(message.Data, &data)
 
+	// TODO: add MAC addr to standard messaging.
+
 	websockets.BroadcastToOutput(websockets.WebSocketMessage{
 		Data: message.Data,
 		From: client,

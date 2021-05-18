@@ -6,6 +6,7 @@ import (
 	"github.com/kevinchapron/BasicLogger/Logging"
 	"github.com/kevinchapron/LIPSHOK/constants"
 	"github.com/kevinchapron/LIPSHOK/messaging"
+	"strings"
 	"time"
 )
 
@@ -28,15 +29,27 @@ func SensorData(msg messaging.Message, client *WebSocketClient, hub *WebSocketHu
 		Logging.Debug("Received Identification for", client.conn.RemoteAddr().String())
 		var m = make(map[string]interface{})
 		json.Unmarshal(msg.Data, &m)
-		client.Name = m["Name"].(string)
-		client.Protocol = m["Protocol"].(string)
-
+		if client.Name == "" {
+			client.Protocol = m["Protocol"].(string)
+			client.Name = m["Name"].(string)
+		} else {
+			GetListSensor().UpdateSensor(&WebSocketClient{Protocol: m["Protocol"].(string), Name: m["Name"].(string)})
+		}
 		return
+	}
+
+	var fromMessaging = client
+	if msg.From != "" {
+		var m = WebSocketClient{}
+		splits := strings.Split(msg.From, "-")
+		m.Name = splits[0]
+		m.Protocol = splits[1]
+		fromMessaging = &m
 	}
 
 	BroadcastToOutput(WebSocketMessage{
 		Data: msg.Data,
-		From: client,
+		From: fromMessaging,
 		To:   nil,
 		Type: 0,
 	})
@@ -54,8 +67,7 @@ func OutputData(msg messaging.Message, client *WebSocketClient, hub *WebSocketHu
 		// Client want global status.
 		Logging.Debug(" --> Client want global status.")
 
-		var returnValue = []map[string]interface{}{}
-
+		var listConnectors = []map[string]interface{}{}
 		var clients = ListAllConnectors()
 		for _, client := range clients {
 			var m = make(map[string]interface{})
@@ -63,12 +75,15 @@ func OutputData(msg messaging.Message, client *WebSocketClient, hub *WebSocketHu
 			m["lastSeen"] = client.lastMessageTime.String()
 			m["name"] = client.Name
 			m["protocol"] = client.Protocol
-			returnValue = append(returnValue, m)
+			listConnectors = append(listConnectors, m)
 		}
 
+		var returnValue = make(map[string]interface{})
+		returnValue["connectors"] = listConnectors
+		returnValue["sensors"] = GetListSensor().ListAllSensors(nil)
 		returnBytes, _ := json.Marshal(returnValue)
 
-		client.sending <- WebSocketMessage{Data: returnBytes}
+		client.sending <- WebSocketMessage{Data: returnBytes, Type: constants.MESSAGING_DATATYPE_AUTH}
 
 		return
 	}
@@ -76,6 +91,9 @@ func OutputData(msg messaging.Message, client *WebSocketClient, hub *WebSocketHu
 }
 
 func BroadcastToOutput(msg WebSocketMessage) {
+	//Logging.Info("[WS] Broadcasting from ",msg.From.Name," (",msg.From.Protocol,") ...")
+	GetListSensor().UpdateSensor(msg.From)
+
 	for client, b := range hubs[constants.OUTPUT_WEBSOCKET_NAME].clients {
 		if !b {
 			continue

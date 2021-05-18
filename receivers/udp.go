@@ -51,10 +51,12 @@ func receivedUDPMessage(logPrefix string, conn *net.UDPConn, addr *net.UDPAddr, 
 		Logging.Error(logPrefix, err)
 		return
 	}
-	Logging.Info(logPrefix, fmt.Sprintf("Received Message from %s : %s", addr.String(), m.Data))
+
+	Logging.Info(logPrefix, fmt.Sprintf("Received Message from %s : %s", internal_connectors.GetSensorDetails(addr.String()), m.Data))
 	// forward message to main app
 	// change AES IV
 	m.AesIV = security.RandomKey()
+	m.From = addr.String()
 	UDPmessagesInternal <- m
 
 	answered := messaging.AnswerMessage{Data: "OK"}
@@ -63,7 +65,6 @@ func receivedUDPMessage(logPrefix string, conn *net.UDPConn, addr *net.UDPAddr, 
 		Logging.Error(logPrefix, err)
 		return
 	}
-
 	m.AesIV = security.RandomKey()
 	m.DataType = constants.MESSAGING_DATATYPE_DATA
 	_, err = conn.WriteToUDP(m.ToBytes(), addr)

@@ -9,8 +9,9 @@ import (
 type Message struct {
 	AesIV    [12]byte
 	DataType byte
+	Data     []byte
 
-	Data []byte
+	From string
 }
 
 func (m *Message) FromBytes(s []byte) error {
@@ -22,8 +23,18 @@ func (m *Message) FromBytes(s []byte) error {
 	}
 	m.DataType = s[14]
 
+	lengthFrom := uint16(s[15])
+	if lengthFrom != 0 {
+		encryptedFrom := s[24 : lengthFrom+24]
+		sFrom, err := security.Decrypt(encryptedFrom, m.AesIV[:])
+		if err != nil {
+			return err
+		}
+		m.From = string(sFrom)
+	}
+
 	lengthData := binary.LittleEndian.Uint16(s[:2])
-	encryptedData := s[24 : lengthData+24]
+	encryptedData := s[24+lengthFrom : lengthData+24]
 	msg, err := security.Decrypt(encryptedData, m.AesIV[:])
 	if err != nil {
 		return err
@@ -38,16 +49,17 @@ func (m *Message) ToBytes() []byte {
 	var r = make([]byte, 24)
 
 	encryptedData, _ := security.Encrypt(m.Data, m.AesIV[:])
+	encryptedFrom, _ := security.Encrypt([]byte(m.From), m.AesIV[:])
 
-	binary.LittleEndian.PutUint16(r[:2], uint16(len(encryptedData)))
+	binary.LittleEndian.PutUint16(r[:2], uint16(len(encryptedData)+len(encryptedFrom)))
 	for i, v := range m.AesIV {
 		r[2+i] = v
 	}
 	r[14] = m.DataType
+	r[15] = byte(len(encryptedFrom))
 
-	for _, v := range encryptedData {
-		r = append(r, v)
-	}
+	r = append(r, encryptedFrom...)
+	r = append(r, encryptedData...)
 
 	return r
 }

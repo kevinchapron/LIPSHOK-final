@@ -65,10 +65,11 @@ func receivedTCPMessage(logPrefix string, conn net.Conn, data []byte) {
 		Logging.Error(logPrefix, err)
 		return
 	}
-	Logging.Info(logPrefix, fmt.Sprintf("Received Message from %s : %s", conn.RemoteAddr().String(), m.Data))
+	Logging.Info(logPrefix, fmt.Sprintf("Received Message from %s : %s", internal_connectors.GetSensorDetails(conn.RemoteAddr().String()), m.Data))
 	// forward message to main app
 	// change AES IV
 	m.AesIV = security.RandomKey()
+	m.From = conn.RemoteAddr().String()
 	TCPmessagesInternal <- m
 
 	answered := messaging.AnswerMessage{Data: "OK"}
