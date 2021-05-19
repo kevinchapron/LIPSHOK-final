@@ -25,6 +25,7 @@
           <hr/>
           <ul class="fa-ul">
             <li title="Receiver"><span class="fa-li"><i class="fas fa-share-alt-square"></i></span><span v-if="sensor.receiverID !== -1">{{ receivers[sensor.receiverID].name }}</span><span v-else>Aucun</span></li>
+            <li title="Value"><span class="fa-li"><i class="fas fa-database"></i></span>{{ sensor.value }}</li>
             <li title="Last Seen"><span class="fa-li"><i class="far fa-eye"></i></span>{{ formatTime(sensor.lastSeen) }}</li>
           </ul>
 <!--          <ul class="fa-ul">-->
@@ -61,13 +62,29 @@ export default {
       switch (data["type"]) {
         case 0:
           // normal data
-          console.log("Received data:", data)
+          for(let i=0;i<this.sensors.length;i++){
+            let sensor = this.sensors[i];
+            if(sensor.name === data.from.Name){
+              // traiter la data du sensor ici
+              this.sensors[i].lastSeen = data.datetime;
+              this.sensors[i].value = data.data.value;
+
+              for(let j=0;j<this.receivers.length;j++){
+                if(this.receivers[j].protocol === sensor.protocol){
+                  this.receivers[j].lastSeen = data.datetime;
+                  break
+                }
+              }
+
+              console.log(this.sensors[i])
+              break;
+            }
+          }
           break
         case 1:
           // auth
           this.buildReceivers(data["data"]["connectors"])
           this.buildSensors(data["data"]["sensors"])
-          console.log(this);
       }
 
     };
@@ -81,14 +98,7 @@ export default {
       if(time == null){
         return "No time";
       }
-      let t = time.split(" ")
-      delete t[t.length - 1]
-      delete t[t.length - 2]
-      delete t[t.length - 3]
-      t[1] = t[1].split(".")
-      delete t[1][1]
-      t[1] = t[1].join(" ")
-      return t.join(" ")
+      return time.substr(0,10)+" "+time.substr(11,8)
     },
     buildSensors: function(arr){
       for(let i=0;i<arr.length;i++){
@@ -112,14 +122,6 @@ export default {
   & > * {
     flex: 0;
 
-    &.receivers {
-      flex-basis: 30%;
-    }
-
-    &.sensors {
-      flex-basis: 70%;
-    }
-
     margin: 20px;
     margin-right: 0;
 
@@ -128,15 +130,31 @@ export default {
     }
 
     &.vertical-line {
-      flex-basis: 2px;
+      flex-basis:5px;
       background: rgba(0, 0, 0, 0.5);
     }
   }
 
   .receivers, .sensors {
-    flex-wrap: nowrap;
     align-items: flex-start;
+    flex:0;
 
+    &.receivers{
+      flex-basis:30vw;
+    }
+    &.sensors{
+      flex-basis:69vw;
+    }
+    & > h2{
+      margin-bottom:10px;
+      padding:20px 0;
+      border-bottom:2px solid gray;
+      text-align:center;
+    }
+    .flex-container{
+      flex-wrap: wrap;
+      flex-basis:30vw;
+    }
     .receiver, .sensor {
       min-width: 200px;
       &.receiver{ background-color: #34495e; }
@@ -145,10 +163,7 @@ export default {
       margin: 20px;
       padding: 10px;
       flex-shrink:0;
-      flex-grow:0.5;
-      &.sensor{
-        flex-grow:0.25;
-      }
+      flex-grow:0.25;
 
       h2 {
         color: #ecf0f1;

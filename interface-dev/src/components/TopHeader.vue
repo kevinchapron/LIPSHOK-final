@@ -1,6 +1,6 @@
 <template>
     <div class="header">
-      <h2>App FSHK</h2>
+      <h2>App LIPSHOK</h2>
     </div>
 </template>
 

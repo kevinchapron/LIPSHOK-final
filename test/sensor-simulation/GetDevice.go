@@ -7,10 +7,10 @@ import (
 	"github.com/kevinchapron/LIPSHOK/security"
 )
 
-func GetDevice() *Device {
+func GetDevice(name string, protocol string) *Device {
 	return &Device{
-		Name:     "TestingSensor",
-		Protocol: "UDP",
+		Name:     name,
+		Protocol: protocol,
 		CalibrationSteps: []CalibrationStep{
 			{Description: "Itération 1", Value: -1, Completed: false},
 			{Description: "Itération 2", Value: -1, Completed: false},

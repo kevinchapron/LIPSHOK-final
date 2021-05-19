@@ -1,13 +1,13 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/kevinchapron/BasicLogger/Logging"
 	"github.com/kevinchapron/LIPSHOK/constants"
-	"github.com/kevinchapron/LIPSHOK/messaging"
 	"github.com/kevinchapron/LIPSHOK/test/sensor-simulation"
+	"math/rand"
 	"net"
+	"time"
 )
 
 func main() {
@@ -21,34 +21,38 @@ func main() {
 	defer conn.Close()
 
 	// Default comportement
-	device := sensor_simulation.GetDevice()
-	device.Protocol = "TCP"
+	device := sensor_simulation.GetDevice("Sensor on TCP", "TCP")
 	data, err := sensor_simulation.ObjectToBytesAuth(device)
 	if err != nil {
 		Logging.Error(err)
 		return
 	}
 
-	p := make([]byte, constants.MAX_TCP_PACKET_SIZE)
-	// send depending to the conn.
-	n, err := conn.Write(data)
+	authAnswer, err := sensor_simulation.AskAndAnswer(conn, data)
 	if err != nil {
 		Logging.Error(err)
 		return
 	}
-	Logging.Info("Sent data : ", n)
-	_, err = conn.Read(p)
-	if err != nil {
-		Logging.Error(err)
-		return
+	Logging.Debug("Answer:", authAnswer)
+
+	values := map[string]interface{}{
+		"value": 0,
 	}
-	var m messaging.Message
-	m.FromBytes(p)
 
-	var answer messaging.AnswerMessage
-	json.Unmarshal(m.Data, &answer)
+	for {
+		time.Sleep(time.Second)
 
-	Logging.Info("Received : ", answer)
+		values["value"] = rand.Intn(1000)
 
+		p, _ := sensor_simulation.ObjectToBytesData(values)
+
+		answer, err := sensor_simulation.AskAndAnswer(conn, p)
+		if err != nil {
+			Logging.Error(err)
+			continue
+		}
+		Logging.Debug("Sent:", values)
+		Logging.Debug("Received:", answer)
+	}
 	select {}
 }

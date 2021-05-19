@@ -72,7 +72,7 @@ func OutputData(msg messaging.Message, client *WebSocketClient, hub *WebSocketHu
 		for _, client := range clients {
 			var m = make(map[string]interface{})
 			m["addr"] = client.conn.RemoteAddr().String()
-			m["lastSeen"] = client.lastMessageTime.String()
+			m["lastSeen"] = client.lastMessageTime
 			m["name"] = client.Name
 			m["protocol"] = client.Protocol
 			listConnectors = append(listConnectors, m)

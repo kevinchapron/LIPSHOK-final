@@ -5,6 +5,7 @@ export default class Sensor{
     this.protocol = fromWS.Protocol;
     this.receiverID = -1;
     this.lastSeen = null;
+    this.value = null;
 
     for(let i=0;i<listReceivers.length;i++){
       if(listReceivers[i].protocol == this.protocol){
