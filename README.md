@@ -84,7 +84,7 @@ If you do not receive it, your message has not been received.
 <summary><b>Bluetooth Low Energy</b></summary>
 
 <p>
-BLE is managed internally using a WebSocket listening on Port <b>5004</b>.
+BLE is managed internally using a WebSocket listening on Port <b>5030</b>.
 Every device must have its own adapter to connect through it.
 An example of such a device can be observed in <b>test/wristband-ble.go</b>.
 </p>
